@@ -70,11 +70,11 @@ void cbGps(const sensor_msgs::NavSatFix::ConstPtr &msg)
         return;
 
     //// IMPLEMENT GPS /////
-    // double lat = msg->latitude;
-    // double lon = msg->longitude;
-    // double alt = msg->altitude;
+    double lat = msg->latitude;
+    double lon = msg->longitude;
+    double alt = msg->altitude;
     
-    // // for initial message -- you may need this:
+    // for initial message -- you may need this:
     // if (std::isnan(initial_ECEF(0)))
     // {   // calculates initial ECEF and returns
     //     initial_ECEF = ECEF;
@@ -92,8 +92,8 @@ void cbMagnet(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
         return;
     
     //// IMPLEMENT GPS ////
-    // double mx = msg->vector.x;
-    // double my = msg->vector.y;
+    double mx = msg->vector.x;
+    double my = msg->vector.y;
 }
 
 // --------- Baro ----------
@@ -105,7 +105,7 @@ void cbBaro(const hector_uav_msgs::Altimeter::ConstPtr &msg)
         return;
 
     //// IMPLEMENT BARO ////
-    // z_bar = msg->altitude;
+    z_bar = msg->altitude;
 
 }
 
@@ -118,7 +118,7 @@ void cbSonar(const sensor_msgs::Range::ConstPtr &msg)
         return;
 
     //// IMPLEMENT SONAR ////
-    // z_snr = msg->range;
+    z_snr = msg->range;
 
 }
 

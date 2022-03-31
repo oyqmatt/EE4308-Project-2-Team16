@@ -56,12 +56,16 @@ void cbHPose(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
     double cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
     a = atan2(siny_cosp, cosy_cosp);
 }
-double turtle_x = NaN, turtle_y = NaN;
+double turtle_x = NaN, turtle_y = NaN, turtle_a;
 void cbTPose(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
     auto &p = msg->pose.position;
     turtle_x = p.x;
     turtle_y = p.y;
+    auto &q = msg->pose.orientation;
+    double siny_cosp = 2 * (q.w * q.z + q.x * q.y);
+    double cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
+    turtle_a = atan2(siny_cosp, cosy_cosp);
 }
 double vx = NaN, vy = NaN, vz = NaN, va = NaN;
 void cbHVel(const geometry_msgs::Twist::ConstPtr &msg)
@@ -147,6 +151,7 @@ int main(int argc, char **argv)
     msg_traj.header.frame_id = "world";
 
     // --------- Wait for Topics ----------
+    ROS_INFO("Waiting: %d",(std::isnan(x) || std::isnan(turtle_x) || std::isnan(vx))) ;
     while (ros::ok() && nh.param("run", true) && (std::isnan(x) || std::isnan(turtle_x) || std::isnan(vx))) // not dependent on main.cpp, but on motion.cpp
         ros::spinOnce();                                                                                    // update the topics
 
@@ -154,41 +159,115 @@ int main(int argc, char **argv)
     ROS_INFO(" HMAIN : ===== BEGIN =====");
     HectorState state = TAKEOFF;
     ros::Rate rate(main_iter_rate);
+    double end_x, end_y, end_z, end_vel_x, end_vel_y, duration; 
+    geometry_msgs::Point target; 
+    std::vector<geometry_msgs::Point> trajectory;
+    int t = 0;
+    bool flag = true;  // Flag to recalculate trajectory
     while (ros::ok() && nh.param("run", true))
     {
         // get topics
         ros::spinOnce();
 
         //// IMPLEMENT ////
-        // if (state == TAKEOFF)
-        // {
-            // // Disable Rotate
-            // msg_rotate.data = false;
-            // pub_rotate.publish(msg_rotate)
-        // }
-        // else if (state == TURTLE)
-        // {
-            
-        // }
-        // else if (state == START)
-        // {
-            // if (!nh.param("/turtle/run", false))
-            // { // when the turtle reaches the final goal
-                // state = LAND;
-            // }
-        // }
-        // else if (state == GOAL)
-        // {
-            
-        // }
-        // else if (state == LAND)
-        // {
-            
-        // }
+        if (state == TAKEOFF)
+        {
+            // Take off to height defined in YAML 
+            if (flag) {
+                // Disable Rotate
+                msg_rotate.data = false;
+                pub_rotate.publish(msg_rotate);
 
-        if (verbose)
-            ROS_INFO_STREAM(" HMAIN : " << to_string(state));
+                end_x = initial_x;
+                end_y = initial_y;
+                end_z = height + initial_z;
+            }
+            // Check
+            else if (abs(z-height) < close_enough){
+                state = TURTLE;
+                msg_rotate.data = true;
+                pub_rotate.publish(msg_rotate);
+                flag = true;
+            }
+        }
+        else if (state == TURTLE)
+        {
+            if (dist_euc(Position(x,y),Position(turtle_x,turtle_y)) < close_enough){
+                state = GOAL;
+                flag = true;
+            }
+            end_x = turtle_x;
+            end_y = turtle_y;
+            flag = true;
+        }
+        else if (state == START)
+        {
+            if (!nh.param("/turtle/run", false) && dist_euc(Position(x,y),Position(initial_x,initial_y)) < close_enough)
+            { // when the turtle reaches the final goal
+                state = LAND;
+                flag = true;
+            }
+            if (flag) {
+                end_x = initial_x;
+                end_y = initial_y;
+            }
+        }
+        else if (state == GOAL)
+        {
+            if (dist_euc(Position(x,y),Position(goal_x,goal_y)) < close_enough){
+                state = START;
+                flag = true;
+            }
+            if (flag) {
+                end_x = goal_x;
+                end_y = goal_y;
+            }
+        }
+        else if (state == LAND)
+        {
+            if (flag) {
+                // Disable Rotate
+                msg_rotate.data = false;
+                pub_rotate.publish(msg_rotate);
 
+                end_x = initial_x;
+                end_y = initial_y;
+                end_z = initial_z;
+            } 
+        }
+
+        // if (verbose)
+            ROS_INFO_STREAM(" HMAIN : " <<  to_string(state));
+        // Recalculate target if flag is true
+        if (flag) {
+            if (state == (LAND || TAKEOFF)) {
+                duration = abs(end_z - z)/ average_speed;
+            }
+            else {
+                duration = dist_euc(Position(x,y),Position(end_x,end_y)) / average_speed;   
+            }
+            // Straight line
+            for (double i = 0; i < duration; i += look_ahead) {
+                trajectory.emplace_back(
+                    x + i / duration * (end_x - x),
+                    y + i / duration * (end_y - y),
+                    z + i / duration * (end_z - z));
+            }
+            trajectory.emplace_back(end_x,end_y,end_z);
+            flag = false;
+        }
+        if (!trajectory.empty() && dist_euc(Position(x,y),Position(end_x,end_y)) < close_enough)
+        {
+            if (--t < 0)
+                t = 0; // in case the close enough for target triggers. indices cannot be less than 0.
+
+            target = trajectory[t];
+            // publish to target topic
+            msg_target.point.x = target.x;
+            msg_target.point.y = target.y;
+            msg_target.point.z = target.z;
+            pub_target.publish(msg_target);
+        }
         rate.sleep();
     }
 
