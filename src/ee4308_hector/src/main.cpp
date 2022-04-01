@@ -40,6 +40,19 @@ std::string to_string(HectorState state)
     }
 }
 
+double dist_euc3d(geometry_msgs::Point src, geometry_msgs::Point tgt) {
+    double Dx = tgt.x - src.x;
+    double Dy = tgt.y - src.y;
+    double Dz = tgt.z - src.z;
+    return sqrt(Dx*Dx + Dy*Dy + Dz*Dz); 
+}
+double dist_euc3d(double src_x, double src_y, double src_z, geometry_msgs::Point tgt){
+    double Dx = tgt.x - src_x;
+    double Dy = tgt.y - src_y;
+    double Dz = tgt.z - src_z;
+    return sqrt(Dx*Dx + Dy*Dy + Dz*Dz); 
+}
+
 bool verbose;
 double initial_x, initial_y, initial_z;
 double x = NaN, y = NaN, z = NaN, a = NaN;
@@ -151,7 +164,7 @@ int main(int argc, char **argv)
     msg_traj.header.frame_id = "world";
 
     // --------- Wait for Topics ----------
-    ROS_INFO("Waiting: %d",(std::isnan(x) || std::isnan(turtle_x) || std::isnan(vx))) ;
+    // ROS_INFO("Waiting: %d",(std::isnan(x) || std::isnan(turtle_x) || std::isnan(vx))) ;
     while (ros::ok() && nh.param("run", true) && (std::isnan(x) || std::isnan(turtle_x) || std::isnan(vx))) // not dependent on main.cpp, but on motion.cpp
         ros::spinOnce();                                                                                    // update the topics
 
@@ -163,7 +176,7 @@ int main(int argc, char **argv)
     geometry_msgs::Point target; 
     std::vector<geometry_msgs::Point> trajectory;
     int t = 0;
-    bool flag = true;  // Flag to recalculate trajectory
+    bool flag = true;  // Flag to recalculate trajectory due to update of end
     while (ros::ok() && nh.param("run", true))
     {
         // get topics
@@ -198,6 +211,7 @@ int main(int argc, char **argv)
             }
             end_x = turtle_x;
             end_y = turtle_y;
+            end_z = height + initial_z;
             flag = true;
         }
         else if (state == START)
@@ -210,6 +224,7 @@ int main(int argc, char **argv)
             if (flag) {
                 end_x = initial_x;
                 end_y = initial_y;
+                end_z = height + initial_z;
             }
         }
         else if (state == GOAL)
@@ -221,6 +236,7 @@ int main(int argc, char **argv)
             if (flag) {
                 end_x = goal_x;
                 end_y = goal_y;
+                end_z = height + initial_z;
             }
         }
         else if (state == LAND)
@@ -240,23 +256,57 @@ int main(int argc, char **argv)
             ROS_INFO_STREAM(" HMAIN : " <<  to_string(state));
         // Recalculate target if flag is true
         if (flag) {
-            if (state == (LAND || TAKEOFF)) {
+            ROS_INFO("HMAIN: Recalc hector trajectory");
+            if (state == LAND || state == TAKEOFF) {
                 duration = abs(end_z - z)/ average_speed;
             }
             else {
                 duration = dist_euc(Position(x,y),Position(end_x,end_y)) / average_speed;   
             }
+            trajectory.clear();
             // Straight line
             for (double i = 0; i < duration; i += look_ahead) {
-                trajectory.emplace_back(
-                    x + i / duration * (end_x - x),
-                    y + i / duration * (end_y - y),
-                    z + i / duration * (end_z - z));
+                geometry_msgs::Point traj;
+                traj.x = end_x - i / duration * (end_x - x);
+                traj.y = end_y - i / duration * (end_y - y);
+                traj.z = end_z - i / duration * (end_z - z);
+                trajectory.emplace_back(traj);
+                // ROS_INFO("HERERERERERERE: %f, %f,%f, %d", average_speed,end_z, duration,trajectory.size());
+                // ros::Duration(5).sleep();
             }
-            trajectory.emplace_back(end_x,end_y,end_z);
+            // geometry_msgs::Point traj;
+            // traj.x = end_x;
+            // traj.y = end_y;
+            // traj.z = end_z;
+            // trajectory.emplace_back(traj);
             flag = false;
+
+            // publish trajectroy to trajectory topic
+            msg_traj.poses.clear();
+            for (geometry_msgs::Point &pos : trajectory)
+            {
+                msg_traj.poses.push_back(geometry_msgs::PoseStamped()); // insert a posestamped initialised to all 0
+                msg_traj.poses.back().pose.position.x = pos.x;
+                msg_traj.poses.back().pose.position.y = pos.y;
+                msg_traj.poses.back().pose.position.z = pos.z;
+            }
+            pub_traj.publish(msg_traj);
+
+            // get new target
+            t = trajectory.size() - 1; // last entry
+            // pick the more distant target so turtlebot does not stop intermitently around very close targets when new path is generated
+            // if (t > 15)
+            //     t -= 15; // this is the average_speed * 15 * target_dt away
+            target = trajectory[t];
+
+            // publish first entry to target topic
+            msg_target.point.x = target.x;
+            msg_target.point.y = target.y;
+            msg_target.point.z = target.z;
+            pub_target.publish(msg_target);
         }
-        if (!trajectory.empty() && dist_euc(Position(x,y),Position(end_x,end_y)) < close_enough)
+
+        if (!trajectory.empty() && dist_euc3d(x,y,z,target) < close_enough)
         {
             if (--t < 0)
                 t = 0; // in case the close enough for target triggers. indices cannot be less than 0.

@@ -1,10 +1,10 @@
 # main
-verbose_main: true
+verbose_main: false
 main_iter_rate: 40
 height: 2
 look_ahead: 1
 close_enough: 0.2
-average_speed: 2.0
+average_speed: 2
 
 # motion
 verbose_motion: false
