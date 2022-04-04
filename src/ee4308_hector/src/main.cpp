@@ -201,6 +201,7 @@ int main(int argc, char **argv)
                 msg_rotate.data = true;
                 pub_rotate.publish(msg_rotate);
                 flag = true;
+                continue;
             }
         }
         else if (state == TURTLE)
@@ -208,6 +209,7 @@ int main(int argc, char **argv)
             if (dist_euc(Position(x,y),Position(turtle_x,turtle_y)) < close_enough){
                 state = GOAL;
                 flag = true;
+                continue;
             }
             end_x = turtle_x;
             end_y = turtle_y;
@@ -220,7 +222,15 @@ int main(int argc, char **argv)
             { // when the turtle reaches the final goal
                 state = LAND;
                 flag = true;
+                continue;
             }
+            else if (dist_euc(Position(x,y),Position(initial_x,initial_y)) < close_enough) {
+                // when the turtle reaches the final goal
+                state = TURTLE;
+                flag = true;
+                continue;
+            }
+
             if (flag) {
                 end_x = initial_x;
                 end_y = initial_y;
@@ -232,6 +242,7 @@ int main(int argc, char **argv)
             if (dist_euc(Position(x,y),Position(goal_x,goal_y)) < close_enough){
                 state = START;
                 flag = true;
+                continue;
             }
             if (flag) {
                 end_x = goal_x;
