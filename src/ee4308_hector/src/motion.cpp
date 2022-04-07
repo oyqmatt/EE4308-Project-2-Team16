@@ -156,7 +156,7 @@ void cbGps(const sensor_msgs::NavSatFix::ConstPtr &msg)
 
 // --------- Magnetic ----------
 double a_mgn = NaN;
-double r_mgn_a;
+double r_mgn_a, initial_mgn;
 void cbMagnet(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
     if (!ready)
@@ -166,7 +166,10 @@ void cbMagnet(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
     double mx = msg->vector.x;
     double my = msg->vector.y;
 
-    a_mgn = atan2(-my,mx);
+    if (std::isnan(a_mgn))
+        initial_mgn = atan2(-my,mx);
+
+    a_mgn = atan2(-my,mx)-initial_mgn;
 
     // IMU Correction
     cv::Matx21d Ka = {0, 0};
