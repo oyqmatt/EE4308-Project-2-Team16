@@ -1,0 +1,95 @@
+[33m[ WARN] [1649351526.045441497]:  TMAIN : Param verbose_main not found, set to true[0m
+[33m[ WARN] [1649351536.988710867, 12.648800000]: Variance: 0.088616[0m
+[33m[ WARN] [1649351547.538692071, 22.648000000]: Variance: 0.084205[0m
+[33m[ WARN] [1649351558.289546406, 32.647200000]: Variance: 0.107935[0m
+[33m[ WARN] [1649351568.769132305, 42.648000000]: Variance: 0.084288[0m
+[33m[ WARN] [1649351579.286881377, 52.647200000]: Variance: 0.095567[0m
+[33m[ WARN] [1649351585.425692571, 58.477600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351585.467686559, 58.518400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351585.508010513, 58.557600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351585.550558771, 58.598400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351585.589962076, 58.637600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351585.632271862, 58.677600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351585.672634770, 58.717600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351585.715553516, 58.758400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351585.759048187, 58.797600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351589.819171233, 62.647200000]: Variance: 0.107259[0m
+[33m[ WARN] [1649351595.072759579, 67.557600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351595.539606661, 67.997600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351596.976379068, 69.357600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351597.018833295, 69.397600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351597.062792851, 69.437600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351600.450612774, 72.647200000]: Variance: 0.109030[0m
+[33m[ WARN] [1649351608.829515650, 80.597600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351608.870550584, 80.637600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351608.911350500, 80.676800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351608.953023027, 80.717600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351608.995504495, 80.756800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351609.037995638, 80.797600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351609.079228721, 80.837600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351609.120906374, 80.878400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351609.163118486, 80.919200000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351609.202400022, 80.957600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351609.245144649, 80.996800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351609.286689372, 81.036800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351609.328081560, 81.077600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351610.966825098, 82.647200000]: Variance: 0.090159[0m
+[33m[ WARN] [1649351614.322908603, 85.838400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351614.364287177, 85.877600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351614.406308169, 85.917600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351614.446413498, 85.957600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351614.488809705, 85.997600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351614.529829166, 86.037600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351614.571849034, 86.077600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351614.612964447, 86.116800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351614.654969437, 86.157600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351621.502684289, 92.647200000]: Variance: 0.133535[0m
+[33m[ WARN] [1649351632.135054325, 102.648000000]: Variance: 0.182216[0m
+[33m[ WARN] [1649351642.655734281, 112.649600000]: Variance: 0.172052[0m
+[33m[ WARN] [1649351650.733010128, 120.357600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351650.774031582, 120.397600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351650.816934896, 120.438400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351650.856362803, 120.477600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351650.898555670, 120.517600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351650.940312297, 120.556800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351650.983745716, 120.597600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.024949628, 120.636800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.066012397, 120.677600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.108839590, 120.718400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.150945975, 120.757600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.195268809, 120.798400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.236782750, 120.837600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.279360709, 120.877600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.320630780, 120.917600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.361647806, 120.957600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.404044520, 120.997600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351651.446474119, 121.037600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351653.138996489, 122.647200000]: Variance: 0.153972[0m
+[33m[ WARN] [1649351654.220049992, 123.677600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.262109634, 123.717600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.305767128, 123.757600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.347655094, 123.798400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.387502386, 123.837600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.428364059, 123.877600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.469569353, 123.917600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.512520431, 123.958400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.552398432, 123.997600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.594832831, 124.038400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.635229094, 124.076800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.677990494, 124.116800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.719951034, 124.157600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.762349797, 124.196800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.803819928, 124.237600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.846210204, 124.277600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.890001311, 124.317600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.931167049, 124.356800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351654.973702252, 124.397600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351655.013938580, 124.437600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351655.054632087, 124.477600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351655.095502117, 124.516800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351655.137671671, 124.558400000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351655.179077041, 124.597600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351655.222094651, 124.637600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351655.262208419, 124.676800000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351655.304404889, 124.717600000]:  TMAIN : Robot lies on inaccessible area. No path can be found[0m
+[33m[ WARN] [1649351663.639768193, 132.648000000]: Variance: 0.117082[0m

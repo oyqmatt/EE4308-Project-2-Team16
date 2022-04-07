@@ -13,6 +13,7 @@
 #include <std_srvs/Empty.h>                          // Service to calrbrate motors
 #include <opencv2/core/core.hpp>
 #include "common.hpp"
+#include <numeric>
 
 #define NaN std::numeric_limits<double>::quiet_NaN()
 
@@ -33,6 +34,7 @@ cv::Matx22d P_a = cv::Matx22d::ones();
 cv::Matx22d P_z = cv::Matx22d::ones();
 double ua = NaN, ux = NaN, uy = NaN, uz = NaN;
 double qa, qx, qy, qz;
+// std::vector<double> var; 
 // see https://docs.opencv.org/3.4/de/de1/classcv_1_1Matx.html
 void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
 {
@@ -170,6 +172,8 @@ void cbMagnet(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
         initial_mgn = atan2(-my,mx);
 
     a_mgn = atan2(-my,mx)-initial_mgn;
+
+    // var.push_back(a_mgn);
 
     // IMU Correction
     cv::Matx21d Ka = {0, 0};
@@ -321,6 +325,13 @@ int main(int argc, char **argv)
         // Verbose
         if (verbose)
         {
+            // if (var.size() >= 100) {
+            //     double sum = std::accumulate(var.begin(),var.end(),0.0);
+            //     double mean = sum/ var.size();
+            //     double sq_sum = std::inner_product(var.begin(), var.end(), var.begin(), 0.0);
+            //     ROS_WARN("Variance: %f", sq_sum);
+            //     var.clear();
+            // }
             auto & tp = msg_true.pose.pose.position;
             auto &q = msg_true.pose.pose.orientation;
             double siny_cosp = 2 * (q.w * q.z + q.x * q.y);
