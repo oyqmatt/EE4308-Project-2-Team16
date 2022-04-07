@@ -23,6 +23,10 @@ bool verbose, use_ground_truth, enable_baro, enable_magnet, enable_sonar, enable
 bool ready = false; // signal to topics to begin
 
 // --------- PREDICTION WITH IMU ----------
+
+double a_mgn = NaN;
+double r_mgn_a;
+cv::Matx31d GPS = {NaN, NaN, NaN};
 const double G = 9.8;
 double prev_imu_t = 0;
 cv::Matx21d X = {0, 0}, Y = {0, 0}; // see intellisense. This is equivalent to cv::Matx<double, 2, 1>
@@ -46,6 +50,7 @@ void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
     double imu_t = msg->header.stamp.toSec();
     double imu_dt = imu_t - prev_imu_t;
     prev_imu_t = imu_t;
+    
 
     // read inputs
     ua = msg->angular_velocity.z;
@@ -54,12 +59,77 @@ void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
     uz = msg->linear_acceleration.z;
     
     //// IMPLEMENT IMU ////
+    // X(0,0) = X(0,0) + X(0,1)*imu_dt + 0.5*(uy*sin(A(0,0))-ux*cos(A(0,0)))*imu_dt*imu_dt;
+    // X(0,1) = X(0,1) + (uy*sin(ua)-ux*cos(ua)) * imu_dt;
+    // Y(0,0) = Y(0,0) + Y(0,1)*imu_dt + 0.5*(uy*cos(A(0,0))+ux*sin(A(0,0)))*imu_dt*imu_dt;
+    // Y(0,1) = Y(0,1) + (uy*cos(ua)+ux*sin(ua)) * imu_dt;
+    // Z(0,0) = Z(0,0) + Z(0,1)*imu_dt + 0.5*(uz-G)*imu_dt*imu_dt;
+    // Z(0,1) = Z(0,1) + (uz-G) * imu_dt;
+    // A(0,0) = A(0,0) + imu_dt * ua;
+    // A(0,1) = ua;
+
+    cv::Matx22d F = {1, imu_dt, 0, 1};
+    cv::Matx22d Fa = {1, 0, 0, 0};
+    cv::Matx<double, 2,1> Ux = {ux, uy};
+    cv::Matx<double, 2,1> Uy = {ux, uy};
+    cv::Matx<double, 1,1> Uz = {uz-G};
+    cv::Matx<double, 1,1> Ua = {ua};
+    cv::Matx22d Wx = {-0.5*imu_dt*imu_dt*cos(A(0,0)), 0.5*imu_dt*imu_dt*sin(A(0,0)), -imu_dt*cos(A(0,0)), imu_dt*sin(A(0,0))};
+    cv::Matx22d Wy = {-0.5*imu_dt*imu_dt*sin(A(0,0)), -0.5*imu_dt*imu_dt*cos(A(0,0)), -imu_dt*sin(A(0,0)), imu_dt*cos(A(0,0))};
+    cv::Matx21d Wz = {0.5*imu_dt*imu_dt, imu_dt};
+    cv::Matx21d Wa = {imu_dt, 1};
+    cv::Matx22d Qx = {qx, 0, 0, qy};
+    cv::Matx22d Qy = {qx, 0, 0, qy};
+    cv::Matx<double, 1,1> Qz = {qz};
+    cv::Matx<double, 1,1> Qa = {ua};
+    cv::Matx12d H = {1.0, 0};
+    cv::Matx<double, 1,1> r = {0};
+    cv::Matx21d Kx = {0, 0};
+    cv::Matx21d Ky = {0, 0};
+    cv::Matx21d Kz = {0, 0};
+    cv::Matx21d Ka = {0, 0};
+
+
+    ROS_INFO_STREAM(A);
+
+    X = F*X + Wx*Ux;
+    Y = F*Y + Wy*Uy;
+    Z = F*Z + Wz*Uz;
+    A = Fa*A + Wa*Ua;
+
+    ROS_INFO_STREAM(A);
+    
+    P_x = F*P_x*F.t() + Wx*Qx*Wx.t();
+    P_y = F*P_y*F.t() + Wy*Qy*Wy.t();
+    P_z = F*P_z*F.t() + Wz*Qz*Wz.t();
+    P_a = Fa*P_a*Fa.t() + Wa*Qa*Wa.t();
+
+    if (std::isnan(GPS(0)))
+    {   // calculates initial ECEF and returns
+        return;
+    }
+    
+    ///// Only if sensor measurement is not empty /////
+    Kx = P_x * H.t() * (H*P_x*H.t() + r).inv();
+    X = X + Kx*(GPS(0) - (H*X)(0));   // <<< insert the measured x here
+    P_x = P_x - Kx*H*P_x;
+
+    Ky = P_y * H.t() * (H*P_y*H.t() + r).inv();
+    Y = Y + Ky*(GPS(1)-(H*Y)(0));   // <<< insert the measured y here
+    P_y = P_y - Ky*H*P_y;
+
+    Kz = P_z * H.t() * (H*P_z*H.t() + r).inv();
+    Z = Z + Kz*(GPS(2)-(H*Z)(0));   // <<< insert the measured z here
+    P_z = P_z - Kz*H*P_z;
+    Ka = P_a * H.t() * (H*P_a*H.t() + r).inv();
+    A = A + Ka*(a_mgn-(H*A)(0));   // <<< insert the measured a here
+    P_a = P_a - Ka*H*P_a;
 }
 
 // --------- GPS ----------
 // https://docs.ros.org/en/api/sensor_msgs/html/msg/NavSatFix.html
-cv::Matx31d GPS = {NaN, NaN, NaN};
 cv::Matx31d initial_pos = {NaN, NaN, NaN}; // written below in main. no further action needed.
+cv::Matx31d initial_ECEF = {NaN, NaN, NaN};
 const double DEG2RAD = M_PI / 180;
 const double RAD_POLAR = 6356752.3;
 const double RAD_EQUATOR = 6378137;
@@ -73,19 +143,45 @@ void cbGps(const sensor_msgs::NavSatFix::ConstPtr &msg)
     double lat = msg->latitude;
     double lon = msg->longitude;
     double alt = msg->altitude;
+    cv::Matx31d ECEF = {NaN, NaN, NaN};
+    cv::Matx31d xyzn = {NaN, NaN, NaN};
+    double e, N;
+    double lati = initial_pos(0), longi = initial_pos(1), alti = initial_pos(2);
+    
+
+    lon = lon*DEG2RAD;
+    lat = lat*DEG2RAD;
+    e = sqrt(1 - (RAD_POLAR/RAD_EQUATOR)*(RAD_POLAR/RAD_EQUATOR));
+    N = RAD_EQUATOR/sqrt(1-(e*sin(lat))*(e*sin(lat)));
+    ECEF(0) = (N + alt)*cos(lat)*cos(lon);
+    ECEF(1) = (N + alt)*cos(lat)*sin(lon);
+    ECEF(2) = ((RAD_POLAR/RAD_EQUATOR)*(RAD_POLAR/RAD_EQUATOR)*N + alt)*sin(lat);
     
     // for initial message -- you may need this:
-    // if (std::isnan(initial_ECEF(0)))
-    // {   // calculates initial ECEF and returns
-    //     initial_ECEF = ECEF;
-    //     return;
-    // }
-    
+    if (std::isnan(initial_ECEF(0)))
+    {   // calculates initial ECEF and returns
+        initial_ECEF = ECEF;
+        return;
+    }
+
+    cv::Matx33d Ren = {NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN};
+    Ren(0, 0) = -sin(lat)*cos(lon);
+    Ren(0, 1) = -sin(lon);
+    Ren(0, 2) = -cos(lat)*cos(lon);
+    Ren(1, 0) = -sin(lat)*sin(lon);
+    Ren(1, 1) = cos(lon);
+    Ren(1, 2) = -cos(lat)*sin(lon);
+    Ren(2, 0) = cos(lat);
+    Ren(2, 1) = 0;
+    Ren(2, 2) = -sin(lat);
+
+    cv::Matx31d NED = Ren * (ECEF - initial_ECEF);
+    cv::Matx33d R = {1,0,0,0,-1,0,0,0,-1};
+    GPS = R * NED + initial_pos;
+
 }
 
 // --------- Magnetic ----------
-double a_mgn = NaN;
-double r_mgn_a;
 void cbMagnet(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
     if (!ready)
@@ -94,6 +190,11 @@ void cbMagnet(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
     //// IMPLEMENT GPS ////
     double mx = msg->vector.x;
     double my = msg->vector.y;
+
+    double yaw0 = atan2(-my,mx);
+    // get the yaw angle(heading?) measurement
+    a_mgn = (atan2(-my,mx)-yaw0);
+
 }
 
 // --------- Baro ----------
@@ -245,9 +346,9 @@ int main(int argc, char **argv)
             ROS_INFO("[HM] STATE(%7.3lf,%7.3lf,%7.3lf,%6.3lf)", X(0), Y(0), Z(0), A(0));
             ROS_INFO("[HM]   GPS(%7.3lf,%7.3lf,%7.3lf, ---- )", GPS(0), GPS(1), GPS(2));
             ROS_INFO("[HM] MAGNT( ----- , ----- , ----- ,%6.3lf)", a_mgn);
-            ROS_INFO("[HM]  BARO( ----- , ----- ,%7.3lf, ---- )", z_bar);
-            ROS_INFO("[HM] BAROB( ----- , ----- ,%7.3lf, ---- )", Z(3));
-            ROS_INFO("[HM] SONAR( ----- , ----- ,%7.3lf, ---- )", z_snr);
+            // ROS_INFO("[HM]  BARO( ----- , ----- ,%7.3lf, ---- )", z_bar);
+            // ROS_INFO("[HM] BAROB( ----- , ----- ,%7.3lf, ---- )", Z(3));
+            // ROS_INFO("[HM] SONAR( ----- , ----- ,%7.3lf, ---- )", z_snr);
         }
 
         //  Publish pose and vel

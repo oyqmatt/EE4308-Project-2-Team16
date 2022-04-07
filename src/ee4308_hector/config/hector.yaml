@@ -7,8 +7,8 @@ close_enough: 0.2
 average_speed: 2
 
 # motion
-verbose_motion: false
-use_ground_truth: true
+verbose_motion: true
+use_ground_truth: false
 qa: 1
 qx: 1
 qy: 1
