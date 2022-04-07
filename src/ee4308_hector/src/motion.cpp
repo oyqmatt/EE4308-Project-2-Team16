@@ -46,6 +46,12 @@ void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
         return;
     }
 
+
+    if (std::isnan(GPS(0)))
+    {   // calculates initial ECEF and returns
+        return;
+    }
+
     // calculate time
     double imu_t = msg->header.stamp.toSec();
     double imu_dt = imu_t - prev_imu_t;
@@ -89,26 +95,16 @@ void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
     cv::Matx21d Kz = {0, 0};
     cv::Matx21d Ka = {0, 0};
 
-
-    ROS_INFO_STREAM(A);
-
     X = F*X + Wx*Ux;
     Y = F*Y + Wy*Uy;
     Z = F*Z + Wz*Uz;
     A = Fa*A + Wa*Ua;
-
-    ROS_INFO_STREAM(A);
     
     P_x = F*P_x*F.t() + Wx*Qx*Wx.t();
     P_y = F*P_y*F.t() + Wy*Qy*Wy.t();
     P_z = F*P_z*F.t() + Wz*Qz*Wz.t();
     P_a = Fa*P_a*Fa.t() + Wa*Qa*Wa.t();
 
-    if (std::isnan(GPS(0)))
-    {   // calculates initial ECEF and returns
-        return;
-    }
-    
     ///// Only if sensor measurement is not empty /////
     Kx = P_x * H.t() * (H*P_x*H.t() + r).inv();
     X = X + Kx*(GPS(0) - (H*X)(0));   // <<< insert the measured x here
