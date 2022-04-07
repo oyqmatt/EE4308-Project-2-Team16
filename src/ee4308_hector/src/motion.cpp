@@ -23,16 +23,12 @@ bool verbose, use_ground_truth, enable_baro, enable_magnet, enable_sonar, enable
 bool ready = false; // signal to topics to begin
 
 // --------- PREDICTION WITH IMU ----------
-
-double a_mgn = NaN;
-double r_mgn_a;
-cv::Matx31d GPS = {NaN, NaN, NaN};
 const double G = 9.8;
 double prev_imu_t = 0;
 cv::Matx21d X = {0, 0}, Y = {0, 0}; // see intellisense. This is equivalent to cv::Matx<double, 2, 1>
 cv::Matx21d A = {0, 0};
 cv::Matx21d Z = {0, 0};
-cv::Matx22d P_x = cv::Matx22d::ones(), P_y = cv::Matx22d::zeros();
+cv::Matx22d P_x = cv::Matx22d::ones(), P_y = cv::Matx22d::ones();
 cv::Matx22d P_a = cv::Matx22d::ones();
 cv::Matx22d P_z = cv::Matx22d::ones();
 double ua = NaN, ux = NaN, uy = NaN, uz = NaN;
@@ -46,17 +42,10 @@ void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
         return;
     }
 
-
-    if (std::isnan(GPS(0)))
-    {   // calculates initial ECEF and returns
-        return;
-    }
-
     // calculate time
     double imu_t = msg->header.stamp.toSec();
     double imu_dt = imu_t - prev_imu_t;
     prev_imu_t = imu_t;
-    
 
     // read inputs
     ua = msg->angular_velocity.z;
@@ -65,15 +54,6 @@ void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
     uz = msg->linear_acceleration.z;
     
     //// IMPLEMENT IMU ////
-    // X(0,0) = X(0,0) + X(0,1)*imu_dt + 0.5*(uy*sin(A(0,0))-ux*cos(A(0,0)))*imu_dt*imu_dt;
-    // X(0,1) = X(0,1) + (uy*sin(ua)-ux*cos(ua)) * imu_dt;
-    // Y(0,0) = Y(0,0) + Y(0,1)*imu_dt + 0.5*(uy*cos(A(0,0))+ux*sin(A(0,0)))*imu_dt*imu_dt;
-    // Y(0,1) = Y(0,1) + (uy*cos(ua)+ux*sin(ua)) * imu_dt;
-    // Z(0,0) = Z(0,0) + Z(0,1)*imu_dt + 0.5*(uz-G)*imu_dt*imu_dt;
-    // Z(0,1) = Z(0,1) + (uz-G) * imu_dt;
-    // A(0,0) = A(0,0) + imu_dt * ua;
-    // A(0,1) = ua;
-
     cv::Matx22d F = {1, imu_dt, 0, 1};
     cv::Matx22d Fa = {1, 0, 0, 0};
     cv::Matx<double, 2,1> Ux = {ux, uy};
@@ -88,12 +68,6 @@ void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
     cv::Matx22d Qy = {qx, 0, 0, qy};
     cv::Matx<double, 1,1> Qz = {qz};
     cv::Matx<double, 1,1> Qa = {ua};
-    cv::Matx12d H = {1.0, 0};
-    cv::Matx<double, 1,1> r = {0};
-    cv::Matx21d Kx = {0, 0};
-    cv::Matx21d Ky = {0, 0};
-    cv::Matx21d Kz = {0, 0};
-    cv::Matx21d Ka = {0, 0};
 
     X = F*X + Wx*Ux;
     Y = F*Y + Wy*Uy;
@@ -105,25 +79,11 @@ void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
     P_z = F*P_z*F.t() + Wz*Qz*Wz.t();
     P_a = Fa*P_a*Fa.t() + Wa*Qa*Wa.t();
 
-    ///// Only if sensor measurement is not empty /////
-    Kx = P_x * H.t() * (H*P_x*H.t() + r).inv();
-    X = X + Kx*(GPS(0) - (H*X)(0));   // <<< insert the measured x here
-    P_x = P_x - Kx*H*P_x;
-
-    Ky = P_y * H.t() * (H*P_y*H.t() + r).inv();
-    Y = Y + Ky*(GPS(1)-(H*Y)(0));   // <<< insert the measured y here
-    P_y = P_y - Ky*H*P_y;
-
-    Kz = P_z * H.t() * (H*P_z*H.t() + r).inv();
-    Z = Z + Kz*(GPS(2)-(H*Z)(0));   // <<< insert the measured z here
-    P_z = P_z - Kz*H*P_z;
-    Ka = P_a * H.t() * (H*P_a*H.t() + r).inv();
-    A = A + Ka*(a_mgn-(H*A)(0));   // <<< insert the measured a here
-    P_a = P_a - Ka*H*P_a;
 }
 
 // --------- GPS ----------
 // https://docs.ros.org/en/api/sensor_msgs/html/msg/NavSatFix.html
+cv::Matx31d GPS = {NaN, NaN, NaN};
 cv::Matx31d initial_pos = {NaN, NaN, NaN}; // written below in main. no further action needed.
 cv::Matx31d initial_ECEF = {NaN, NaN, NaN};
 const double DEG2RAD = M_PI / 180;
@@ -144,7 +104,6 @@ void cbGps(const sensor_msgs::NavSatFix::ConstPtr &msg)
     double e, N;
     double lati = initial_pos(0), longi = initial_pos(1), alti = initial_pos(2);
     
-
     lon = lon*DEG2RAD;
     lat = lat*DEG2RAD;
     e = sqrt(1 - (RAD_POLAR/RAD_EQUATOR)*(RAD_POLAR/RAD_EQUATOR));
@@ -175,22 +134,48 @@ void cbGps(const sensor_msgs::NavSatFix::ConstPtr &msg)
     cv::Matx33d R = {1,0,0,0,-1,0,0,0,-1};
     GPS = R * NED + initial_pos;
 
+    // GPS Correction
+    cv::Matx21d Kx = {0, 0};
+    cv::Matx21d Ky = {0, 0};
+    cv::Matx21d Kz = {0, 0};
+    cv::Matx12d H = {1.0, 0};
+    cv::Matx<double,1,1> r_x = {r_gps_x}, r_y = {r_gps_y}, r_z = {r_gps_z};
+    
+    Kx = P_x * H.t() * (H*P_x*H.t() + r_x).inv();
+    X = X + Kx*(GPS(0) - (H*X)(0));
+    P_x = P_x - Kx*H*P_x;
+
+    Ky = P_y * H.t() * (H*P_y*H.t() + r_y).inv();
+    Y = Y + Ky*(GPS(1)-(H*Y)(0));
+    P_y = P_y - Ky*H*P_y;
+
+    Kz = P_z * H.t() * (H*P_z*H.t() + r_z).inv();
+    Z = Z + Kz*(GPS(2)-(H*Z)(0));
+    P_z = P_z - Kz*H*P_z;
 }
 
 // --------- Magnetic ----------
+double a_mgn = NaN;
+double r_mgn_a;
 void cbMagnet(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
 {
     if (!ready)
         return;
     
-    //// IMPLEMENT GPS ////
+    //// IMPLEMENT IMU ////
     double mx = msg->vector.x;
     double my = msg->vector.y;
 
-    double yaw0 = atan2(-my,mx);
-    // get the yaw angle(heading?) measurement
-    a_mgn = (atan2(-my,mx)-yaw0);
+    a_mgn = atan2(-my,mx);
 
+    // IMU Correction
+    cv::Matx21d Ka = {0, 0};
+    cv::Matx12d H = {1.0, 0};
+    cv::Matx<double, 1,1> r = {r_mgn_a};
+
+    Ka = P_a * H.t() * (H*P_a*H.t() + r).inv();
+    A = A + Ka*(a_mgn-(H*A)(0));
+    P_a = P_a - Ka*H*P_a;
 }
 
 // --------- Baro ----------
