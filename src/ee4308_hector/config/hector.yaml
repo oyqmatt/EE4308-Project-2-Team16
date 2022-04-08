@@ -21,12 +21,12 @@ enable_magnet: true
 r_mgn_a: 0.000694
 enable_baro: false
 r_bar_z: 1.0e-1
-enable_sonar: false
-r_snr_z: 1.0e-1
+enable_sonar: true
+r_snr_z: 2.0e-5
 motion_iter_rate: 20
 
 # move
-enable_move: false
+enable_move: true
 verbose_move: false
 Kp_lin: 1
 Ki_lin: 0.0

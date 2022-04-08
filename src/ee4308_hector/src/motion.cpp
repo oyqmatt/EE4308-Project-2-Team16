@@ -38,6 +38,7 @@ std::vector<double> var_x;
 std::vector<double> var_y; 
 std::vector<double> var_z; 
 std::vector<double> var_a; 
+std::vector<double> var_snr; 
 // see https://docs.opencv.org/3.4/de/de1/classcv_1_1Matx.html
 void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
 {
@@ -139,7 +140,6 @@ void cbGps(const sensor_msgs::NavSatFix::ConstPtr &msg)
     cv::Matx33d R = {1,0,0,0,-1,0,0,0,-1};
     GPS = R * NED + initial_pos;
 
-
     var_x.push_back(GPS(0));
     var_y.push_back(GPS(1));
     var_z.push_back(GPS(2));
@@ -211,11 +211,20 @@ double z_snr = NaN;
 double r_snr_z;
 void cbSonar(const sensor_msgs::Range::ConstPtr &msg)
 {
-    if (!ready)
+    if (!ready || std::isnan(GPS(0)))
         return;
 
     //// IMPLEMENT SONAR ////
     z_snr = msg->range;
+    var_snr.push_back(z_snr);
+
+    cv::Matx21d Kz = {0, 0};
+    cv::Matx12d H = {1.0, 0};
+    cv::Matx<double,1,1> r_sonar = {r_snr_z};
+
+    Kz = P_z * H.t() * (H*P_z*H.t() + r_sonar).inv();
+    Z = Z + Kz*(z_snr-(H*Z)(0));
+    P_z = P_z - Kz*H*P_z;
 
 }
 
@@ -333,53 +342,65 @@ int main(int argc, char **argv)
         // Verbose
         if (verbose)
         {
-            if (var_x.size() >= 100) {
-                double sum = std::accumulate(var_x.begin(),var_x.end(),0.0);
-                double mean = sum/ var_x.size();
+            // if (var_x.size() >= 100) {
+            //     double sum = std::accumulate(var_x.begin(),var_x.end(),0.0);
+            //     double mean = sum/ var_x.size();
+            //     double temp = 0;
+            //     for (int i=0; i<var_x.size(); i++){
+            //         temp = temp + (var_x[i]-mean) * (var_x[i]-mean);
+            //     }
+            //     double sq_sum = temp / var_x.size();
+            //     // double sq_sum = std::inner_product(var_x.begin(), var_x.end(), var_x.begin(), 0.0);
+            //     ROS_WARN("x Variance: %f", sq_sum);
+            //     var_x.clear();
+            // }
+            // if (var_y.size() >= 100) {
+            //     double sum = std::accumulate(var_y.begin(),var_y.end(),0.0);
+            //     double mean = sum/ var_y.size();
+            //     double temp = 0;
+            //     for (int i=0; i<var_y.size(); i++){
+            //         temp = temp + (var_y[i]-mean) * (var_y[i]-mean);
+            //     }
+            //     double sq_sum = temp / var_y.size();
+            //     // double sq_sum = std::inner_product(var_y.begin(), var_y.end(), var_y.begin(), 0.0);
+            //     ROS_WARN("y Variance: %f", sq_sum);
+            //     var_y.clear();
+            // }
+            // if (var_z.size() >= 100) {
+            //     double sum = std::accumulate(var_z.begin(),var_z.end(),0.0);
+            //     double mean = sum/ var_z.size();
+            //     double temp = 0;
+            //     for (int i=0; i<var_z.size(); i++){
+            //         temp = temp + (var_z[i]-mean) * (var_z[i]-mean);
+            //     }
+            //     double sq_sum = temp / var_z.size();
+            //     // double sq_sum = std::inner_product(var_z.begin(), var_z.end(), var_z.begin(), 0.0);
+            //     ROS_WARN("z Variance: %f", sq_sum);
+            //     var_z.clear();
+            // }
+            // if (var_a.size() >= 100) {
+            //     double sum = std::accumulate(var_a.begin(),var_a.end(),0.0);
+            //     double mean = sum/ var_a.size();
+            //     double temp = 0;
+            //     for (int i=0; i<var_a.size(); i++){
+            //         temp = temp + (var_a[i]-mean) * (var_a[i]-mean);
+            //     }
+            //     double sq_sum = temp / var_a.size();
+            //     // double sq_sum = std::inner_product(var_a.begin(), var_a.end(), var_a.begin(), 0.0);
+            //     ROS_WARN("a Variance: %f", sq_sum);
+            //     var_a.clear();
+            // }
+            if (var_snr.size() >= 100) {
+                double sum = std::accumulate(var_snr.begin(),var_snr.end(),0.0);
+                double mean = sum/ var_snr.size();
                 double temp = 0;
-                for (int i=0; i<var_x.size(); i++){
-                    temp = temp + (var_x[i]-mean) * (var_x[i]-mean);
+                for (int i=0; i<var_snr.size(); i++){
+                    temp = temp + (var_snr[i]-mean) * (var_snr[i]-mean);
                 }
-                double sq_sum = temp / var_x.size();
-                // double sq_sum = std::inner_product(var_x.begin(), var_x.end(), var_x.begin(), 0.0);
-                ROS_WARN("x Variance: %f", sq_sum);
-                var_x.clear();
-            }
-            if (var_y.size() >= 100) {
-                double sum = std::accumulate(var_y.begin(),var_y.end(),0.0);
-                double mean = sum/ var_y.size();
-                double temp = 0;
-                for (int i=0; i<var_y.size(); i++){
-                    temp = temp + (var_y[i]-mean) * (var_y[i]-mean);
-                }
-                double sq_sum = temp / var_y.size();
-                // double sq_sum = std::inner_product(var_y.begin(), var_y.end(), var_y.begin(), 0.0);
-                ROS_WARN("y Variance: %f", sq_sum);
-                var_y.clear();
-            }
-            if (var_z.size() >= 100) {
-                double sum = std::accumulate(var_z.begin(),var_z.end(),0.0);
-                double mean = sum/ var_z.size();
-                double temp = 0;
-                for (int i=0; i<var_z.size(); i++){
-                    temp = temp + (var_z[i]-mean) * (var_z[i]-mean);
-                }
-                double sq_sum = temp / var_z.size();
-                // double sq_sum = std::inner_product(var_z.begin(), var_z.end(), var_z.begin(), 0.0);
-                ROS_WARN("z Variance: %f", sq_sum);
-                var_z.clear();
-            }
-            if (var_a.size() >= 100) {
-                double sum = std::accumulate(var_a.begin(),var_a.end(),0.0);
-                double mean = sum/ var_a.size();
-                double temp = 0;
-                for (int i=0; i<var_a.size(); i++){
-                    temp = temp + (var_a[i]-mean) * (var_a[i]-mean);
-                }
-                double sq_sum = temp / var_a.size();
-                // double sq_sum = std::inner_product(var_a.begin(), var_a.end(), var_a.begin(), 0.0);
-                ROS_WARN("a Variance: %f", sq_sum);
-                var_a.clear();
+                double sq_sum = temp / var_snr.size();
+                // double sq_sum = std::inner_product(var_snr.begin(), var_snr.end(), var_snr.begin(), 0.0);
+                ROS_WARN("snr Variance: %f", sq_sum);
+                var_snr.clear();
             }
             auto & tp = msg_true.pose.pose.position;
             auto &q = msg_true.pose.pose.orientation;
@@ -392,7 +413,7 @@ int main(int argc, char **argv)
             // ROS_INFO("[HM] MAGNT( ----- , ----- , ----- ,%6.3lf)", a_mgn);
             // ROS_INFO("[HM]  BARO( ----- , ----- ,%7.3lf, ---- )", z_bar);
             // ROS_INFO("[HM] BAROB( ----- , ----- ,%7.3lf, ---- )", Z(3));
-            // ROS_INFO("[HM] SONAR( ----- , ----- ,%7.3lf, ---- )", z_snr);
+            ROS_INFO("[HM] SONAR( ----- , ----- ,%7.3lf, ---- )", z_snr);
         }
 
         //  Publish pose and vel
