@@ -336,21 +336,36 @@ int main(int argc, char **argv)
             if (var_x.size() >= 100) {
                 double sum = std::accumulate(var_x.begin(),var_x.end(),0.0);
                 double mean = sum/ var_x.size();
-                double sq_sum = std::inner_product(var_x.begin(), var_x.end(), var_x.begin(), 0.0);
+                double temp = 0;
+                for (int i=0; i<var_x.size(); i++){
+                    temp = temp + (var_x[i]-mean) * (var_x[i]-mean);
+                }
+                double sq_sum = temp / var_x.size();
+                // double sq_sum = std::inner_product(var_x.begin(), var_x.end(), var_x.begin(), 0.0);
                 ROS_WARN("x Variance: %f", sq_sum);
                 var_x.clear();
             }
             if (var_y.size() >= 100) {
                 double sum = std::accumulate(var_y.begin(),var_y.end(),0.0);
                 double mean = sum/ var_y.size();
-                double sq_sum = std::inner_product(var_y.begin(), var_y.end(), var_y.begin(), 0.0);
+                double temp = 0;
+                for (int i=0; i<var_y.size(); i++){
+                    temp = temp + (var_y[i]-mean) * (var_y[i]-mean);
+                }
+                double sq_sum = temp / var_y.size();
+                // double sq_sum = std::inner_product(var_y.begin(), var_y.end(), var_y.begin(), 0.0);
                 ROS_WARN("y Variance: %f", sq_sum);
                 var_y.clear();
             }
             if (var_z.size() >= 100) {
                 double sum = std::accumulate(var_z.begin(),var_z.end(),0.0);
                 double mean = sum/ var_z.size();
-                double sq_sum = std::inner_product(var_z.begin(), var_z.end(), var_z.begin(), 0.0);
+                double temp = 0;
+                for (int i=0; i<var_z.size(); i++){
+                    temp = temp + (var_z[i]-mean) * (var_z[i]-mean);
+                }
+                double sq_sum = temp / var_z.size();
+                // double sq_sum = std::inner_product(var_z.begin(), var_z.end(), var_z.begin(), 0.0);
                 ROS_WARN("z Variance: %f", sq_sum);
                 var_z.clear();
             }
@@ -368,8 +383,8 @@ int main(int argc, char **argv)
             ROS_INFO("[HM] ---------X-------Y-------Z-------A------");
             ROS_INFO("[HM]  TRUE(%7.3lf,%7.3lf,%7.3lf,%6.3lf)", tp.x, tp.y, tp.z, atan2(siny_cosp, cosy_cosp));
             ROS_INFO("[HM] STATE(%7.3lf,%7.3lf,%7.3lf,%6.3lf)", X(0), Y(0), Z(0), A(0));
-            ROS_INFO("[HM]   GPS(%7.3lf,%7.3lf,%7.3lf, ---- )", GPS(0), GPS(1), GPS(2));
-            ROS_INFO("[HM] MAGNT( ----- , ----- , ----- ,%6.3lf)", a_mgn);
+            ROS_INFO("[HM]  XYZA(%7.3lf,%7.3lf,%7.3lf,%6.3lf)", GPS(0), GPS(1), GPS(2),a_mgn);
+            // ROS_INFO("[HM] MAGNT( ----- , ----- , ----- ,%6.3lf)", a_mgn);
             // ROS_INFO("[HM]  BARO( ----- , ----- ,%7.3lf, ---- )", z_bar);
             // ROS_INFO("[HM] BAROB( ----- , ----- ,%7.3lf, ---- )", Z(3));
             // ROS_INFO("[HM] SONAR( ----- , ----- ,%7.3lf, ---- )", z_snr);
