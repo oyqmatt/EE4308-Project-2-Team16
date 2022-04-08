@@ -372,7 +372,12 @@ int main(int argc, char **argv)
             if (var_a.size() >= 100) {
                 double sum = std::accumulate(var_a.begin(),var_a.end(),0.0);
                 double mean = sum/ var_a.size();
-                double sq_sum = std::inner_product(var_a.begin(), var_a.end(), var_a.begin(), 0.0);
+                double temp = 0;
+                for (int i=0; i<var_a.size(); i++){
+                    temp = temp + (var_a[i]-mean) * (var_a[i]-mean);
+                }
+                double sq_sum = temp / var_a.size();
+                // double sq_sum = std::inner_product(var_a.begin(), var_a.end(), var_a.begin(), 0.0);
                 ROS_WARN("a Variance: %f", sq_sum);
                 var_a.clear();
             }
