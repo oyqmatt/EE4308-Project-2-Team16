@@ -34,7 +34,10 @@ cv::Matx22d P_a = cv::Matx22d::ones();
 cv::Matx22d P_z = cv::Matx22d::ones();
 double ua = NaN, ux = NaN, uy = NaN, uz = NaN;
 double qa, qx, qy, qz;
-// std::vector<double> var; 
+std::vector<double> var_x;
+std::vector<double> var_y; 
+std::vector<double> var_z; 
+std::vector<double> var_a; 
 // see https://docs.opencv.org/3.4/de/de1/classcv_1_1Matx.html
 void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
 {
@@ -136,6 +139,11 @@ void cbGps(const sensor_msgs::NavSatFix::ConstPtr &msg)
     cv::Matx33d R = {1,0,0,0,-1,0,0,0,-1};
     GPS = R * NED + initial_pos;
 
+
+    var_x.push_back(GPS(0));
+    var_y.push_back(GPS(1));
+    var_z.push_back(GPS(2));
+
     // GPS Correction
     cv::Matx21d Kx = {0, 0};
     cv::Matx21d Ky = {0, 0};
@@ -173,7 +181,7 @@ void cbMagnet(const geometry_msgs::Vector3Stamped::ConstPtr &msg)
 
     a_mgn = atan2(-my,mx)-initial_mgn;
 
-    // var.push_back(a_mgn);
+    var_a.push_back(a_mgn);
 
     // IMU Correction
     cv::Matx21d Ka = {0, 0};
@@ -325,13 +333,34 @@ int main(int argc, char **argv)
         // Verbose
         if (verbose)
         {
-            // if (var.size() >= 100) {
-            //     double sum = std::accumulate(var.begin(),var.end(),0.0);
-            //     double mean = sum/ var.size();
-            //     double sq_sum = std::inner_product(var.begin(), var.end(), var.begin(), 0.0);
-            //     ROS_WARN("Variance: %f", sq_sum);
-            //     var.clear();
-            // }
+            if (var_x.size() >= 100) {
+                double sum = std::accumulate(var_x.begin(),var_x.end(),0.0);
+                double mean = sum/ var_x.size();
+                double sq_sum = std::inner_product(var_x.begin(), var_x.end(), var_x.begin(), 0.0);
+                ROS_WARN("x Variance: %f", sq_sum);
+                var_x.clear();
+            }
+            if (var_y.size() >= 100) {
+                double sum = std::accumulate(var_y.begin(),var_y.end(),0.0);
+                double mean = sum/ var_y.size();
+                double sq_sum = std::inner_product(var_y.begin(), var_y.end(), var_y.begin(), 0.0);
+                ROS_WARN("y Variance: %f", sq_sum);
+                var_y.clear();
+            }
+            if (var_z.size() >= 100) {
+                double sum = std::accumulate(var_z.begin(),var_z.end(),0.0);
+                double mean = sum/ var_z.size();
+                double sq_sum = std::inner_product(var_z.begin(), var_z.end(), var_z.begin(), 0.0);
+                ROS_WARN("z Variance: %f", sq_sum);
+                var_z.clear();
+            }
+            if (var_a.size() >= 100) {
+                double sum = std::accumulate(var_a.begin(),var_a.end(),0.0);
+                double mean = sum/ var_a.size();
+                double sq_sum = std::inner_product(var_a.begin(), var_a.end(), var_a.begin(), 0.0);
+                ROS_WARN("a Variance: %f", sq_sum);
+                var_a.clear();
+            }
             auto & tp = msg_true.pose.pose.position;
             auto &q = msg_true.pose.pose.orientation;
             double siny_cosp = 2 * (q.w * q.z + q.x * q.y);

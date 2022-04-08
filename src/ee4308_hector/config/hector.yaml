@@ -26,7 +26,7 @@ r_snr_z: 1.0e-1
 motion_iter_rate: 20
 
 # move
-enable_move: true
+enable_move: false
 verbose_move: false
 Kp_lin: 1
 Ki_lin: 0.0
