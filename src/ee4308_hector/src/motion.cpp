@@ -126,13 +126,13 @@ void cbGps(const sensor_msgs::NavSatFix::ConstPtr &msg)
 
     cv::Matx33d Ren = {NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN};
     Ren(0, 0) = -sin(lat)*cos(lon);
-    Ren(0, 1) = -sin(lon);
-    Ren(0, 2) = -cos(lat)*cos(lon);
-    Ren(1, 0) = -sin(lat)*sin(lon);
+    Ren(1, 0) = -sin(lon);
+    Ren(2, 0) = -cos(lat)*cos(lon);
+    Ren(0, 1) = -sin(lat)*sin(lon);
     Ren(1, 1) = cos(lon);
-    Ren(1, 2) = -cos(lat)*sin(lon);
-    Ren(2, 0) = cos(lat);
-    Ren(2, 1) = 0;
+    Ren(2, 1) = -cos(lat)*sin(lon);
+    Ren(0, 2) = cos(lat);
+    Ren(1, 2) = 0;
     Ren(2, 2) = -sin(lat);
 
     cv::Matx31d NED = Ren * (ECEF - initial_ECEF);
