@@ -2,7 +2,7 @@
 verbose_main: false
 main_iter_rate: 40
 height: 2
-look_ahead: 1
+look_ahead: 0.3
 close_enough: 0.2
 average_speed: 2
 
@@ -28,9 +28,9 @@ motion_iter_rate: 20
 # move
 enable_move: true
 verbose_move: false
-Kp_lin: .8
-Ki_lin: 0.05
-Kd_lin: 0.1
+Kp_lin: 1.2
+Ki_lin: 0.01
+Kd_lin: 0.05
 Kp_z: 1
 Ki_z: 0.0
 Kd_z: 0

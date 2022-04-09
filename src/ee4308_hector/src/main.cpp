@@ -172,7 +172,7 @@ int main(int argc, char **argv)
     ROS_INFO(" HMAIN : ===== BEGIN =====");
     HectorState state = TAKEOFF;
     ros::Rate rate(main_iter_rate);
-    double end_x, end_y, end_z, end_vel_x, end_vel_y, duration; 
+    double end_x, end_y, end_z, vel_end_x, vel_end_y, duration; 
     geometry_msgs::Point target; 
     std::vector<geometry_msgs::Point> trajectory;
     int t = 0;
@@ -235,6 +235,11 @@ int main(int argc, char **argv)
                 end_x = initial_x;
                 end_y = initial_y;
                 end_z = height + initial_z;
+                vel_end_x = turtle_x - x;
+                vel_end_y = turtle_y - x;  
+                double xy_vel = sqrt(vel_end_x*vel_end_x +vel_end_y*vel_end_y);
+                vel_end_x = vel_end_x * average_speed / xy_vel;
+                vel_end_y = vel_end_y * average_speed / xy_vel;
             }
         }
         else if (state == GOAL)
@@ -248,6 +253,11 @@ int main(int argc, char **argv)
                 end_x = goal_x;
                 end_y = goal_y;
                 end_z = height + initial_z;
+                vel_end_x = initial_x - x;
+                vel_end_y = initial_y - y;  
+                double xy_vel = sqrt(vel_end_x*vel_end_x +vel_end_y*vel_end_y);
+                vel_end_x = vel_end_x * average_speed / xy_vel;
+                vel_end_y = vel_end_y * average_speed / xy_vel;
             }
         }
         else if (state == LAND)
@@ -274,22 +284,44 @@ int main(int argc, char **argv)
             else {
                 duration = dist_euc(Position(x,y),Position(end_x,end_y)) / average_speed;   
             }
+
             trajectory.clear();
-            // Straight line
-            for (double i = 0; i < duration; i += look_ahead) {
-                geometry_msgs::Point traj;
-                traj.x = end_x - i / duration * (end_x - x);
-                traj.y = end_y - i / duration * (end_y - y);
-                traj.z = end_z - i / duration * (end_z - z);
-                trajectory.emplace_back(traj);
-                // ROS_INFO("HERERERERERERE: %f, %f,%f, %d", average_speed,end_z, duration,trajectory.size());
-                // ros::Duration(5).sleep();
+            if (state == TAKEOFF || state == LAND || state == TURTLE) { 
+                for (double i = 0; i < duration; i += look_ahead) {
+                    geometry_msgs::Point traj;
+                    traj.x = end_x - i / duration * (end_x - x);
+                    traj.y = end_y - i / duration * (end_y - y);
+                    traj.z = end_z - i / duration * (end_z - z);
+                    trajectory.emplace_back(traj);
+                }
             }
-            // geometry_msgs::Point traj;
-            // traj.x = end_x;
-            // traj.y = end_y;
-            // traj.z = end_z;
-            // trajectory.emplace_back(traj);
+            else {
+                double a0, a1, a2, a3, b0, b1, b2, b3;
+                Position vel_begin = Position(end_x-x,end_y-y);
+                double xy_vel = sqrt(vel_begin.x*vel_begin.x +vel_begin.y*vel_begin.y);
+                vel_begin.x = vel_begin.x * average_speed / xy_vel;
+                vel_begin.y = vel_begin.y * average_speed / xy_vel;
+
+                a0 = x;
+                a1 = vel_begin.x;
+                a2 = -3 * pow(duration,-2) * x - 2 / duration * vel_begin.x  + 3 * pow(duration,-2) * end_x - 1 / duration * vel_end_x;
+                a3 = 2 * pow(duration,-3) * x + pow(duration,-2) * vel_begin.x  -2 * pow(duration,-3) * end_x + pow(duration,-2) * vel_end_x;
+                
+                b0 = y;
+                b1 = vel_begin.y;
+                b2 = -3 * pow(duration,-2) * y - 2 / duration * vel_begin.y  +3 * pow(duration,-2) * end_y - 1 / duration * vel_end_y;
+                b3 = 2 * pow(duration,-3) * y + pow(duration,-2) * vel_begin.y  -2 * pow(duration,-3) * end_y + pow(duration,-2) * vel_end_y;
+
+                for (double time = duration; time > 0; time -= look_ahead)
+                {
+                    geometry_msgs::Point traj;
+                    traj.x = a0 + a1*time + a2 * pow(time,2) + a3 * pow(time,3);
+                    traj.y = b0 + b1*time + b2 * pow(time,2) + b3 * pow(time,3);
+                    traj.z = height;
+                    trajectory.emplace_back(traj);
+                }
+            }
+
             flag = false;
 
             // publish trajectroy to trajectory topic

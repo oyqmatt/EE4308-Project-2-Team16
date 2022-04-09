@@ -15,6 +15,17 @@
 #include "common.hpp"
 #define NaN std::numeric_limits<double>::quiet_NaN()
 
+// PID Globals
+double error_x = 0;
+double error_x_prev = 0;
+double error_x_accum = 0;
+double error_y = 0;
+double error_y_prev = 0;
+double error_y_accum = 0;
+double error_z = 0;
+double error_z_prev = 0;
+double error_z_accum = 0;
+
 ros::ServiceClient en_mtrs;
 void disable_motors(int sig)
 {
@@ -36,6 +47,9 @@ void cbTarget(const geometry_msgs::PointStamped::ConstPtr &msg)
     target_x = msg->point.x;
     target_y = msg->point.y;
     target_z = msg->point.z;
+    // error_x_accum = 0;
+    // error_y_accum = 0;
+    // error_z_accum = 0;
 }
 
 double x = NaN, y = NaN, z = NaN, a = NaN;
@@ -136,17 +150,6 @@ int main(int argc, char **argv)
     double dt;
     double prev_time = ros::Time::now().toSec();
 
-
-    double error_x = 0;
-    double error_x_prev = 0;
-    double error_x_accum = 0;
-    double error_y = 0;
-    double error_y_prev = 0;
-    double error_y_accum = 0;
-    double error_z = 0;
-    double error_z_prev = 0;
-    double error_z_accum = 0;
-
     // main loop
     while (ros::ok() && nh.param("run", true))
     {
@@ -182,8 +185,6 @@ int main(int argc, char **argv)
         u_x = p_x + i_x + d_x;
         acc_x = (u_x - cmd_lin_vel_x) / dt;
         cmd_lin_vel_x = cmd_lin_vel_x + acc_x * dt;
-
-
         
         double p_y = 0;
         double i_y = 0;
@@ -208,7 +209,6 @@ int main(int argc, char **argv)
             cmd_lin_vel_x = cmd_lin_vel_x * max_lin_vel / xy_vel;
             cmd_lin_vel_y = cmd_lin_vel_y * max_lin_vel / xy_vel;
         }
-
         
         double p_z = 0;
         double i_z = 0;
