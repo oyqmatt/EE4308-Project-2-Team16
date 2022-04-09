@@ -28,9 +28,9 @@ motion_iter_rate: 20
 # move
 enable_move: true
 verbose_move: false
-Kp_lin: 1
-Ki_lin: 0.0
-Kd_lin: 0
+Kp_lin: .8
+Ki_lin: 0.05
+Kd_lin: 0.1
 Kp_z: 1
 Ki_z: 0.0
 Kd_z: 0

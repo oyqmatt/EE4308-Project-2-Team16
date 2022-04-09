@@ -136,6 +136,17 @@ int main(int argc, char **argv)
     double dt;
     double prev_time = ros::Time::now().toSec();
 
+
+    double error_x = 0;
+    double error_x_prev = 0;
+    double error_x_accum = 0;
+    double error_y = 0;
+    double error_y_prev = 0;
+    double error_y_accum = 0;
+    double error_z = 0;
+    double error_z_prev = 0;
+    double error_z_accum = 0;
+
     // main loop
     while (ros::ok() && nh.param("run", true))
     {
@@ -155,9 +166,6 @@ int main(int argc, char **argv)
         pub_cmd.publish(msg_cmd);
 
         //// IMPLEMENT /////
-        double error_x = 0;
-        double error_x_prev = 0;
-        double error_x_accum = 0;
         double p_x = 0;
         double i_x = 0;
         double d_x = 0;
@@ -176,9 +184,7 @@ int main(int argc, char **argv)
         cmd_lin_vel_x = cmd_lin_vel_x + acc_x * dt;
 
 
-        double error_y = 0;
-        double error_y_prev = 0;
-        double error_y_accum = 0;
+        
         double p_y = 0;
         double i_y = 0;
         double d_y = 0;
@@ -203,9 +209,7 @@ int main(int argc, char **argv)
             cmd_lin_vel_y = cmd_lin_vel_y * max_lin_vel / xy_vel;
         }
 
-        double error_z = 0;
-        double error_z_prev = 0;
-        double error_z_accum = 0;
+        
         double p_z = 0;
         double i_z = 0;
         double d_z = 0;
